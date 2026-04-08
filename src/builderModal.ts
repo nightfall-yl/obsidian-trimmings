@@ -1,0 +1,629 @@
+import {
+	App,
+	Modal,
+	Setting,
+	TextAreaComponent,
+} from "obsidian";
+import {
+	DEFAULT_HOMEPAGE_SETTINGS,
+	HOMEPAGE_CARD_PALETTES,
+	HomepageCardConfig,
+	HomepageCardPalettePreset,
+	HomepageComponentSettings,
+	HomepageConfig,
+	HomepageLinkItem,
+	resolveHomepageCardPalette,
+} from "./homepageTypes";
+import { AppLanguage, Locals, getLanguage, setLanguage } from "./i18/messages";
+import { Local } from "./i18/types";
+import { stringifyHomepageConfig } from "./homepageYaml";
+
+function createDefaultCard(): HomepageCardConfig {
+	const palette = HOMEPAGE_CARD_PALETTES.sage;
+	const local = Locals.get();
+	return {
+		type: "links",
+		title: local.homeboard_default_card_title,
+		palettePreset: "sage",
+		cardBackgroundColor: palette.background,
+		cardBackgroundTransparency: 100,
+		titleColor: palette.title,
+		linkColor: palette.link,
+		separatorColor: palette.separator,
+		links: [
+			{ label: "收件箱", url: "00.收件箱-Index" },
+			{ label: "日记", url: "00.Daily Index" },
+		],
+	};
+}
+
+function parseLinks(text: string): HomepageLinkItem[] {
+	return text
+		.split("\n")
+		.map((line) => line.trim())
+		.filter(Boolean)
+		.map((line) => {
+			const [label, url] = line.split("|").map((part) => part.trim());
+			return {
+				label: label || url,
+				url: url || label,
+			};
+		});
+}
+
+function stringifyLinks(links: HomepageLinkItem[] | undefined): string {
+	return (links ?? [])
+		.map((item) => `${item.label} | ${item.url}`)
+		.join("\n");
+}
+
+function applyPalette(card: HomepageCardConfig, preset: HomepageCardPalettePreset) {
+	const palette = HOMEPAGE_CARD_PALETTES[preset];
+	card.palettePreset = preset;
+	card.cardBackgroundColor = palette.background;
+	card.cardBackgroundTransparency = 100;
+	card.titleColor = palette.title;
+	card.linkColor = palette.link;
+	card.separatorColor = palette.separator;
+}
+
+function createPaletteSwatches(
+	container: HTMLElement,
+	colors: string[],
+	className = "homepage-builder-modal__palette-swatch"
+) {
+	const swatches = container.createDiv({
+		cls: "homepage-builder-modal__palette-swatches plugin-config-swatch-group",
+	});
+	colors.forEach((color) => {
+		swatches.createEl("span", {
+			cls: className,
+			attr: { style: `background:${color}` },
+		});
+	});
+	return swatches;
+}
+
+function getPaletteLabel(local: Local, preset: HomepageCardPalettePreset): string {
+	switch (preset) {
+		case "sage":
+			return local.homeboard_palette_sage;
+		case "mist":
+			return local.homeboard_palette_mist;
+		case "amber":
+			return local.homeboard_palette_amber;
+		case "plum":
+			return local.homeboard_palette_plum;
+		case "slate":
+			return local.homeboard_palette_slate;
+		default:
+			return local.homeboard_palette_custom;
+	}
+}
+
+export class HomepageBuilderModal extends Modal {
+	private config: HomepageConfig;
+	private settings: HomepageComponentSettings;
+	private onSubmit: (config: HomepageConfig) => void | Promise<void>;
+	private saveTimer: number | null = null;
+	private isSaving = false;
+	private pendingSave = false;
+	private closePaletteMenu: (() => void) | null = null;
+	private activeTab: "basic" | "cards" = "basic";
+
+	constructor(
+		app: App,
+		settings: HomepageComponentSettings,
+		onSubmit: (config: HomepageConfig) => void | Promise<void>,
+		initialConfig?: HomepageConfig
+	) {
+		super(app);
+		this.settings = settings;
+		this.onSubmit = onSubmit;
+		this.config = initialConfig ?? HomepageBuilderModal.createInitialConfig(settings);
+	}
+
+	onOpen() {
+		this.modalEl.addClass("homepage-builder-modal-container");
+		this.render();
+	}
+
+	onClose() {
+		this.closePaletteMenu?.();
+		this.closePaletteMenu = null;
+		void this.flushSave();
+	}
+
+	static createInitialConfig(settings: HomepageComponentSettings): HomepageConfig {
+		const local = Locals.get();
+		const firstCard = createDefaultCard();
+		const secondCard = createDefaultCard();
+		applyPalette(secondCard, "mist");
+		return {
+			id: `homepage-${Date.now()}`,
+			title: local.homeboard_default_title,
+			titleFontSize: 22,
+			columns: settings.defaultColumns ?? DEFAULT_HOMEPAGE_SETTINGS.defaultColumns,
+			gap: settings.defaultGap ?? DEFAULT_HOMEPAGE_SETTINGS.defaultGap,
+			cards: [firstCard, secondCard],
+		};
+	}
+
+	private render() {
+		const { contentEl } = this;
+		const local = Locals.get();
+		contentEl.empty();
+		contentEl.addClass("homepage-builder-modal", "plugin-config-modal");
+
+		const workspace = contentEl.createDiv({
+			cls: "homepage-builder-modal__workspace plugin-config-modal__workspace",
+		});
+		workspace.tabIndex = -1;
+		const tabContainer = workspace.createDiv({
+			cls: "tab-container homepage-builder-modal__tabs plugin-config-form",
+		});
+		const tabTitles = tabContainer.createDiv({ cls: "tab-titles" });
+		this.renderTabTitle(tabTitles, local.homeboard_tab_basic, "basic");
+		this.renderTabTitle(tabTitles, local.homeboard_tab_cards, "cards");
+		const divider = tabContainer.createDiv({ cls: "contribution-graph-divider homepage-builder-modal__divider" });
+		divider.createDiv();
+		const tabItems = tabContainer.createDiv({ cls: "tab-items" });
+
+		const basicTab = tabItems.createDiv({
+			cls: `tab-item ${this.activeTab === "basic" ? "active" : ""}`,
+		});
+		const basicPane = basicTab.createDiv({ cls: "homepage-builder-modal__editor" });
+		this.renderBasicSettings(basicPane);
+
+		const cardsTab = tabItems.createDiv({
+			cls: `tab-item ${this.activeTab === "cards" ? "active" : ""}`,
+		});
+		const cardsPane = cardsTab.createDiv({ cls: "homepage-builder-modal__editor" });
+		this.renderCardSettings(cardsPane);
+
+		window.setTimeout(() => {
+			workspace.focus({ preventScroll: true });
+		}, 0);
+
+	}
+
+	private renderTabTitle(
+		container: HTMLElement,
+		label: string,
+		tab: "basic" | "cards"
+	) {
+		const title = container.createDiv({
+			cls: `tab-item-title ${this.activeTab === tab ? "active" : ""}`,
+			text: label,
+		});
+		title.addEventListener("click", () => {
+			if (this.activeTab === tab) {
+				return;
+			}
+			this.closePaletteMenu?.();
+			this.activeTab = tab;
+			this.render();
+		});
+	}
+
+	private renderBasicSettings(container: HTMLElement) {
+		const local = Locals.get();
+		new Setting(container)
+			.setName(local.language_label)
+			.setDesc(local.language_desc)
+			.addButton((button) => {
+				this.configureLanguageButton(button.buttonEl, "zh");
+				button.onClick(() => this.switchLanguage("zh"));
+			})
+			.addButton((button) => {
+				this.configureLanguageButton(button.buttonEl, "en");
+				button.onClick(() => this.switchLanguage("en"));
+			});
+
+		new Setting(container)
+			.setName(local.homeboard_block_id)
+			.setDesc(local.homeboard_block_id_desc)
+			.addText((text) =>
+				text.setValue(this.config.id ?? "").onChange((value) => {
+					this.config.id = value.trim() || `homepage-${Date.now()}`;
+					this.refreshDerivedViews();
+				})
+			);
+
+		new Setting(container)
+			.setName(local.form_title)
+			.addText((text) => {
+				text.inputEl.addClass("homepage-builder-modal__title-input");
+				return text.setValue(this.config.title ?? "").onChange((value) => {
+					this.config.title = value;
+					this.refreshDerivedViews();
+				});
+			})
+			.addText((text) => {
+				text.inputEl.addClass("homepage-builder-modal__title-size-input");
+				text.setPlaceholder(local.homeboard_title_font_size_placeholder);
+				return text.setValue(String(this.config.titleFontSize ?? 22)).onChange((value) => {
+					this.config.titleFontSize = Number(value) || 22;
+					this.refreshDerivedViews();
+				});
+			});
+
+		new Setting(container)
+			.setName(local.homeboard_columns)
+			.addSlider((slider) =>
+				slider
+					.setLimits(1, 4, 1)
+					.setValue(this.config.columns ?? 2)
+					.setDynamicTooltip()
+					.onChange((value) => {
+						this.config.columns = value;
+						this.refreshDerivedViews();
+					})
+			);
+
+		new Setting(container)
+			.setName(local.homeboard_gap)
+			.setDesc(local.homeboard_gap_desc)
+			.addText((text) =>
+				text.setValue(String(this.config.gap ?? 16)).onChange((value) => {
+					this.config.gap = Number(value) || value || 16;
+					this.refreshDerivedViews();
+				})
+			);
+	}
+
+	private renderCardSettings(container: HTMLElement) {
+		const local = Locals.get();
+		container.createEl("h3", { text: local.homeboard_cards });
+		for (const [index, card] of (this.config.cards ?? []).entries()) {
+			this.renderCardEditor(container, card, index);
+		}
+
+		new Setting(container)
+			.setName(local.homeboard_add_card)
+			.setDesc(local.homeboard_add_card_desc)
+			.addButton((button) =>
+				button.setButtonText(local.homeboard_add_button).onClick(() => {
+					this.addCard();
+				})
+			);
+	}
+
+	private refreshDerivedViews() {
+		this.scheduleSave();
+	}
+
+	private scheduleSave() {
+		if (this.saveTimer !== null) {
+			window.clearTimeout(this.saveTimer);
+		}
+		this.saveTimer = window.setTimeout(() => {
+			void this.flushSave();
+		}, 220);
+	}
+
+	private async flushSave() {
+		if (this.saveTimer !== null) {
+			window.clearTimeout(this.saveTimer);
+			this.saveTimer = null;
+		}
+
+		if (this.isSaving) {
+			this.pendingSave = true;
+			return;
+		}
+
+		this.isSaving = true;
+		try {
+			await this.onSubmit(this.cloneConfig(this.config));
+		} finally {
+			this.isSaving = false;
+			if (this.pendingSave) {
+				this.pendingSave = false;
+				void this.flushSave();
+			}
+		}
+	}
+
+	private renderCardEditor(container: HTMLElement, card: HomepageCardConfig, index: number) {
+		const local = Locals.get();
+		const cardEl = container.createDiv({ cls: "homepage-builder-modal__card" });
+		cardEl.createEl("h4", { text: `${local.homeboard_card_label} ${index + 1}` });
+		card.type = "links";
+
+		new Setting(cardEl)
+			.setName(local.homeboard_type)
+			.setDesc(local.homeboard_type_desc)
+			.addExtraButton((button) => {
+				button.setIcon("arrow-up").setTooltip(local.homeboard_move_up).onClick(() => {
+					this.moveCard(index, -1);
+				});
+			})
+			.addExtraButton((button) => {
+				button.setIcon("arrow-down").setTooltip(local.homeboard_move_down).onClick(() => {
+					this.moveCard(index, 1);
+				});
+			})
+			.addExtraButton((button) => {
+				button.setIcon("trash").setTooltip(local.homeboard_remove).onClick(() => {
+					this.removeCard(index);
+				});
+			});
+
+		new Setting(cardEl)
+			.setName(local.form_title)
+			.addText((text) =>
+				text.setValue(card.title ?? "").onChange((value) => {
+					card.title = value;
+					this.refreshDerivedViews();
+				})
+			);
+
+		new Setting(cardEl)
+			.setName(local.homeboard_palette)
+			.setDesc(local.homeboard_palette_desc)
+			.addButton((button) => {
+				button.setClass("homepage-builder-modal__palette-trigger");
+				this.renderPaletteTrigger(button.buttonEl, card);
+				button.onClick(() => {
+					this.togglePaletteMenu(button.buttonEl, card);
+				});
+			});
+
+		new Setting(cardEl)
+			.setName(local.homeboard_background)
+			.setDesc(local.homeboard_background_desc)
+			.addColorPicker((picker) =>
+				picker
+					.setValue(card.cardBackgroundColor ?? "#ffffff")
+					.onChange((value) => this.updateCardColors(card, () => {
+						card.cardBackgroundColor = value;
+					}))
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder("100")
+					.setValue(String(card.cardBackgroundTransparency ?? 100))
+					.onChange((value) => {
+						card.cardBackgroundTransparency = Number(value) || 100;
+						this.refreshDerivedViews();
+					})
+			);
+
+		new Setting(cardEl)
+			.setName(local.homeboard_accent_colors)
+			.setDesc(local.homeboard_accent_colors_desc)
+			.addColorPicker((picker) =>
+				picker
+					.setValue(card.titleColor ?? "#61b94d")
+					.onChange((value) => this.updateCardColors(card, () => {
+						card.titleColor = value;
+					}))
+			)
+			.addColorPicker((picker) =>
+				picker
+					.setValue(card.linkColor ?? "#1d86ea")
+					.onChange((value) => this.updateCardColors(card, () => {
+						card.linkColor = value;
+					}))
+			)
+			.addColorPicker((picker) =>
+				picker
+					.setValue(card.separatorColor ?? "#77ba61")
+					.onChange((value) => this.updateCardColors(card, () => {
+						card.separatorColor = value;
+					}))
+			);
+
+		new Setting(cardEl)
+			.setName(local.homeboard_column_span)
+			.setDesc(local.homeboard_column_span_desc)
+			.addText((text) =>
+				text.setPlaceholder("1").setValue(card.column ? String(card.column) : "").onChange((value) => {
+					card.column = value ? Number(value) : undefined;
+					this.refreshDerivedViews();
+				})
+			)
+			.addText((text) =>
+				text.setPlaceholder("1").setValue(card.span ? String(card.span) : "").onChange((value) => {
+					card.span = value ? Number(value) : undefined;
+					this.refreshDerivedViews();
+				})
+			);
+
+		this.addTextareaSetting(
+			cardEl,
+			local.homeboard_links,
+			stringifyLinks(card.links),
+			(value) => {
+				card.links = parseLinks(value);
+			},
+			local.homeboard_links_desc
+		);
+	}
+
+	private addTextareaSetting(
+		container: HTMLElement,
+		name: string,
+		value: string,
+		onChange: (value: string) => void,
+		desc?: string
+	) {
+		const setting = new Setting(container).setName(name);
+		if (desc) {
+			setting.setDesc(desc);
+		}
+		setting.addTextArea((text: TextAreaComponent) => {
+			text.setValue(value).onChange((nextValue) => {
+				onChange(nextValue);
+				this.refreshDerivedViews();
+			});
+			text.inputEl.rows = 6;
+			text.inputEl.addClass("homepage-builder-modal__textarea");
+		});
+	}
+
+	private addCard() {
+		this.config.cards?.push(createDefaultCard());
+		this.scheduleSave();
+		this.render();
+	}
+
+	private moveCard(index: number, direction: -1 | 1) {
+		const cards = this.config.cards!;
+		const nextIndex = index + direction;
+		if (nextIndex < 0 || nextIndex >= cards.length) {
+			return;
+		}
+		[cards[index], cards[nextIndex]] = [cards[nextIndex], cards[index]];
+		this.scheduleSave();
+		this.render();
+	}
+
+	private removeCard(index: number) {
+		this.config.cards!.splice(index, 1);
+		const remainingCards = this.config.cards!.length;
+		if (remainingCards > 0 && (this.config.columns ?? 1) > remainingCards) {
+			this.config.columns = remainingCards;
+		}
+		this.scheduleSave();
+		this.render();
+	}
+
+	private updateCardColors(card: HomepageCardConfig, update: () => void) {
+		update();
+		card.palettePreset = undefined;
+		this.refreshDerivedViews();
+	}
+
+	private renderPaletteTrigger(container: HTMLElement, card: HomepageCardConfig) {
+		const local = Locals.get();
+		const activePreset = card.palettePreset;
+		const activePalette = activePreset ? HOMEPAGE_CARD_PALETTES[activePreset] : null;
+		const resolvedPalette = resolveHomepageCardPalette(card);
+		container.empty();
+		const triggerRow = container.createDiv({
+			cls: "homepage-builder-modal__palette-trigger-row plugin-config-palette-trigger-row",
+		});
+		triggerRow.createEl("span", {
+			text: activePreset
+				? getPaletteLabel(local, activePreset)
+				: local.homeboard_palette_custom,
+			cls: "homepage-builder-modal__palette-trigger-label plugin-config-palette-label",
+		});
+		createPaletteSwatches(
+			triggerRow,
+			activePalette
+				? [activePalette.background, activePalette.title, activePalette.link, activePalette.separator]
+				: [
+					resolvedPalette.background,
+					resolvedPalette.title,
+					resolvedPalette.link,
+					resolvedPalette.separator,
+				],
+			"homepage-builder-modal__palette-swatch homepage-builder-modal__palette-swatch--small"
+		);
+	}
+
+	private togglePaletteMenu(triggerEl: HTMLElement, card: HomepageCardConfig) {
+		if (this.closePaletteMenu) {
+			this.closePaletteMenu();
+			return;
+		}
+
+		const triggerRect = triggerEl.getBoundingClientRect();
+		const menuEl = this.modalEl.createDiv({
+			cls: "homepage-builder-modal__palette-menu plugin-config-palette-menu",
+		});
+		menuEl.style.position = "fixed";
+		menuEl.style.left = `${triggerRect.left}px`;
+		menuEl.style.top = `${triggerRect.bottom + 6}px`;
+		menuEl.style.width = `${triggerRect.width}px`;
+
+		const closeMenu = () => {
+			menuEl.remove();
+			document.removeEventListener("click", handleOutsideClick, true);
+			if (this.closePaletteMenu === closeMenu) {
+				this.closePaletteMenu = null;
+			}
+		};
+
+		const handleOutsideClick = (event: MouseEvent) => {
+			const target = event.target as Node | null;
+			if (target && (triggerEl.contains(target) || menuEl.contains(target))) {
+				return;
+			}
+			closeMenu();
+		};
+
+		this.closePaletteMenu = closeMenu;
+		this.renderPaletteOptions(menuEl, card, closeMenu);
+		window.setTimeout(() => {
+			document.addEventListener("click", handleOutsideClick, true);
+		}, 0);
+	}
+
+	private renderPaletteOptions(
+		menuEl: HTMLElement,
+		card: HomepageCardConfig,
+		closeMenu: () => void
+	) {
+		const local = Locals.get();
+		(
+			Object.entries(HOMEPAGE_CARD_PALETTES) as [
+				HomepageCardPalettePreset,
+				typeof HOMEPAGE_CARD_PALETTES.sage,
+			][]
+		).forEach(([preset, palette]) => {
+			const item = menuEl.createEl("button", {
+				cls: "homepage-builder-modal__palette-option plugin-config-palette-option",
+				attr: { type: "button" },
+			});
+			if (card.palettePreset === preset) {
+				item.addClass("is-active");
+			}
+			item.createEl("span", {
+				text: getPaletteLabel(local, preset),
+				cls: "homepage-builder-modal__palette-option-label plugin-config-palette-label",
+			});
+			createPaletteSwatches(item, [
+				palette.background,
+				palette.title,
+				palette.link,
+				palette.separator,
+			]);
+			item.addEventListener("click", () => {
+				applyPalette(card, preset);
+				this.scheduleSave();
+				closeMenu();
+				this.render();
+			});
+		});
+	}
+
+	private cloneConfig(config: HomepageConfig): HomepageConfig {
+		return JSON.parse(JSON.stringify(config)) as HomepageConfig;
+	}
+
+	private switchLanguage(lang: AppLanguage) {
+		if (getLanguage() === lang) {
+			return;
+		}
+		setLanguage(lang);
+		this.closePaletteMenu?.();
+		this.render();
+	}
+
+	private configureLanguageButton(buttonEl: HTMLButtonElement, lang: AppLanguage) {
+		const local = Locals.get();
+		buttonEl.addClass("homepage-builder-modal__language-button");
+		buttonEl.setText(lang === "zh" ? local.language_zh : local.language_en);
+		if (getLanguage() === lang) {
+			buttonEl.addClass("is-active");
+		}
+	}
+
+	static toCodeBlock(config: HomepageConfig): string {
+		return `\`\`\`homeboard\n${stringifyHomepageConfig(config)}\n\`\`\`\n`;
+	}
+}
