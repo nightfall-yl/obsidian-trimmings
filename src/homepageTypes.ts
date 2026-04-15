@@ -63,7 +63,7 @@ export interface HomepageComponentSettings {
 
 export const DEFAULT_HOMEPAGE_SETTINGS: HomepageComponentSettings = {
 	defaultColumns: 2,
-	defaultGap: 16,
+	defaultGap: 2,
 	cardPadding: 16,
 	cardBorderRadius: 16,
 	cardBorderColor: "#d0d7de",

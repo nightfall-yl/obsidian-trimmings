@@ -3,7 +3,7 @@
 > 一款 Obsidian 插件，将首页变为可配置的导航仪表盘，并支持贡献热力图追踪。
 
 [![Min App Version](https://img.shields.io/badge/Obsidian-1.3.0%2B-7C3AED?logo=obsidian)](https://obsidian.md/)
-[![Version](https://img.shields.io/badge/Version-2026.4-22C55E)](https://github.com/nightfall-yl/Obsidian-Homeboard/releases)
+[![Version](https://img.shields.io/badge/Version-26.4.2-22C55E)](https://github.com/nightfall-yl/Obsidian-Homeboard/releases)
 [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
 Homeboard 提供两大核心功能，可独立使用，也可在同一页面组合：
@@ -51,30 +51,31 @@ npm run build
 ````markdown
 ```homeboard
 id: homepage-main
-title: 我的首页
+title: 主页
 columns: 2
-gap: 16
+gap: 2
 cards:
   - type: links
-    title: 常用入口
+    title: 卡片 1
     span: 1
     linksLayout: inline
+    palettePreset: sage
     links:
-      - label: 收件箱
-        url: 00.收件箱
-      - label: 日记
-        url: 00.Daily Index
-      - label: 项目
-        url: 00.项目 Index
+      - label: 链接 1
+        url:
+      - label: 链接 2
+        url:
 
   - type: links
-    title: 资源
+    title: 卡片 2
     span: 1
-    linksLayout: list
+    linksLayout: inline
+    palettePreset: mist
     links:
-      - label: GitHub
-        url: https://github.com
-        external: true
+      - label: 链接 1
+        url:
+      - label: 链接 2
+        url:
 ```
 ````
 
@@ -93,7 +94,7 @@ cards:
 | `id` | 代码块唯一标识（推荐设置，用于记忆列宽） | 自动生成 |
 | `title` | 仪表盘标题 | — |
 | `columns` | 列数（1–4） | 2 |
-| `gap` | 卡片间距（px） | 16 |
+| `gap` | 卡片间距（px） | 2 |
 | `cards` | 卡片列表 | — |
 
 ### Links 卡片

@@ -3,7 +3,7 @@ import { Local } from "./types";
 export class Zh implements Local {
 	language_label = "语言";
 	language_desc = "设置页面显示语言。";
-	language_zh = "中文";
+	language_zh = "简体中文";
 	language_en = "English";
 	default = "默认";
 	click_to_reset = "点击重置";
@@ -148,7 +148,7 @@ export class Zh implements Local {
 	homeboard_move_down = "下移";
 	homeboard_remove = "删除";
 	homeboard_card_label = "卡片";
-	homeboard_default_title = "主页导航";
+	homeboard_default_title = "主页";
 	homeboard_default_card_title = "链接";
 	homeboard_menu_title = "新增Homeboard组件";
 	homeboard_insert_command = "插入 Homeboard 代码块";

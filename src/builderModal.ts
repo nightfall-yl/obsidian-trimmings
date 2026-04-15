@@ -18,21 +18,26 @@ import { AppLanguage, Locals, getLanguage, setLanguage } from "./i18/messages";
 import { Local } from "./i18/types";
 import { stringifyHomepageConfig } from "./homepageYaml";
 
-function createDefaultCard(): HomepageCardConfig {
-	const palette = HOMEPAGE_CARD_PALETTES.sage;
-	const local = Locals.get();
+function createDefaultCard(index?: number, existingCards?: HomepageCardConfig[]): HomepageCardConfig {
+	const allKeys: HomepageCardPalettePreset[] = ["sage", "mist", "amber", "plum", "slate"];
+	const usedKeys = new Set(existingCards?.map((c) => c.palettePreset).filter(Boolean));
+	const availableKeys = allKeys.filter((k) => !usedKeys.has(k));
+	const keys = availableKeys.length > 0 ? availableKeys : allKeys;
+	const randomKey = keys[Math.floor(Math.random() * keys.length)];
+	const palette = HOMEPAGE_CARD_PALETTES[randomKey];
 	return {
 		type: "links",
-		title: local.homeboard_default_card_title,
-		palettePreset: "sage",
+		title: index ? `卡片 ${index}` : undefined,
+		palettePreset: randomKey,
+		linksLayout: "inline",
 		cardBackgroundColor: palette.background,
 		cardBackgroundTransparency: 100,
 		titleColor: palette.title,
 		linkColor: palette.link,
 		separatorColor: palette.separator,
 		links: [
-			{ label: "收件箱", url: "00.收件箱-Index" },
-			{ label: "日记", url: "00.Daily Index" },
+			{ label: "链接 1", url: "" },
+			{ label: "链接 2", url: "" },
 		],
 	};
 }
@@ -136,13 +141,13 @@ export class HomepageBuilderModal extends Modal {
 
 	static createInitialConfig(settings: HomepageComponentSettings): HomepageConfig {
 		const local = Locals.get();
-		const firstCard = createDefaultCard();
-		const secondCard = createDefaultCard();
+		const firstCard = createDefaultCard(1);
+		const secondCard = createDefaultCard(2);
 		applyPalette(secondCard, "mist");
 		return {
 			id: `homepage-${Date.now()}`,
 			title: local.homeboard_default_title,
-			titleFontSize: 22,
+			titleFontSize: 16,
 			columns: settings.defaultColumns ?? DEFAULT_HOMEPAGE_SETTINGS.defaultColumns,
 			gap: settings.defaultGap ?? DEFAULT_HOMEPAGE_SETTINGS.defaultGap,
 			cards: [firstCard, secondCard],
@@ -235,29 +240,31 @@ export class HomepageBuilderModal extends Modal {
 			.addText((text) => {
 				text.inputEl.addClass("homepage-builder-modal__title-input");
 				return text.setValue(this.config.title ?? "").onChange((value) => {
-					this.config.title = value;
+					this.config.title = value.trim() || undefined;
 					this.refreshDerivedViews();
 				});
 			})
 			.addText((text) => {
 				text.inputEl.addClass("homepage-builder-modal__title-size-input");
 				text.setPlaceholder(local.homeboard_title_font_size_placeholder);
-				return text.setValue(String(this.config.titleFontSize ?? 22)).onChange((value) => {
-					this.config.titleFontSize = Number(value) || 22;
+				return text.setValue(String(this.config.titleFontSize ?? 16)).onChange((value) => {
+					this.config.titleFontSize = Number(value) || 16;
 					this.refreshDerivedViews();
 				});
 			});
 
 		new Setting(container)
 			.setName(local.homeboard_columns)
-			.addSlider((slider) =>
-				slider
-					.setLimits(1, 4, 1)
-					.setValue(this.config.columns ?? 2)
-					.setDynamicTooltip()
+			.addText((text) =>
+				text
+					.setPlaceholder("2")
+					.setValue(String(this.config.columns ?? 2))
 					.onChange((value) => {
-						this.config.columns = value;
-						this.refreshDerivedViews();
+						const num = Number(value);
+						if (num >= 1 && num <= 4) {
+							this.config.columns = num;
+							this.refreshDerivedViews();
+						}
 					})
 			);
 
@@ -464,7 +471,8 @@ export class HomepageBuilderModal extends Modal {
 	}
 
 	private addCard() {
-		this.config.cards?.push(createDefaultCard());
+		const index = (this.config.cards?.length ?? 0) + 1;
+		this.config.cards?.push(createDefaultCard(index, this.config.cards));
 		this.scheduleSave();
 		this.render();
 	}

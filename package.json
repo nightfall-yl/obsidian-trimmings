@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-homeboard",
-	"version": "26.4.1",
+	"version": "26.4.2",
 	"description": "An Obsidian plugin for homepage dashboards with columns and contribution graphs.",
 	"main": "main.js",
 	"scripts": {

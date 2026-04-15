@@ -17,7 +17,7 @@ import {
 import { convertToRGBA } from "./colorUtils";
 import { mountFloatingEditButton } from "./view/codeblock/floatingEditButton";
 
-const DEFAULT_GAP = "16px";
+const DEFAULT_GAP = "2px";
 
 export class HomepageProcessor {
 	private plugin: HomepageComponentPlugin;
@@ -126,6 +126,8 @@ export class HomepageProcessor {
 
 			if (card.linksLayout) {
 				cardEl.dataset.linksLayout = card.linksLayout;
+			} else {
+				cardEl.dataset.linksLayout = "inline";
 			}
 
 			if (card.title) {
@@ -174,7 +176,7 @@ export class HomepageProcessor {
 
 	private normalizeTitleFontSize(fontSize?: number): number {
 		if (!fontSize || Number.isNaN(fontSize)) {
-			return 22;
+			return 16;
 		}
 
 		return Math.max(12, Math.min(48, Math.floor(fontSize)));
@@ -244,10 +246,6 @@ export class HomepageProcessor {
 		content: string
 	) {
 		if (startLine === undefined || endLine === undefined) {
-			return;
-		}
-		const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
-		if (view?.getMode?.() !== "source") {
 			return;
 		}
 

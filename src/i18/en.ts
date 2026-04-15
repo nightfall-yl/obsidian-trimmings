@@ -150,7 +150,7 @@ export class En implements Local {
     homeboard_move_down = "Move down";
     homeboard_remove = "Remove";
     homeboard_card_label = "Card";
-    homeboard_default_title = "My Homepage";
+    homeboard_default_title = "Home";
     homeboard_default_card_title = "Links";
     homeboard_menu_title = "Add Homeboard Component";
     homeboard_insert_command = "Insert Homeboard block";

@@ -12,10 +12,10 @@ if you want to view the source, please visit the plugin source
 const prod = process.argv[2] === "production";
 
 async function syncReleaseArtifacts() {
-	await mkdir("release", { recursive: true });
-	await cp("main.js", "release/main.js");
-	await cp("manifest.json", "release/manifest.json");
-	await cp("styles.css", "release/styles.css");
+	await mkdir("released", { recursive: true });
+	await cp("main.js", "released/main.js");
+	await cp("manifest.json", "released/manifest.json");
+	await cp("styles.css", "released/styles.css");
 }
 
 const context = await esbuild.context({

@@ -13,7 +13,7 @@ import { Locals } from "./i18/messages";
 import { parseHomepageConfig } from "./homepageConfig";
 import { HomeboardError } from "./homeboardError";
 import { HomepageProcessor } from "./homepageProcessor";
-import { DEFAULT_HOMEPAGE_SETTINGS, HomepageComponentSettings } from "./homepageTypes";
+import { DEFAULT_HOMEPAGE_SETTINGS, HOMEPAGE_CARD_PALETTES, HomepageCardPalettePreset, HomepageComponentSettings } from "./homepageTypes";
 import { stringifyHomepageConfig } from "./homepageYaml";
 import { CodeBlockProcessor } from "./processor/codeBlockProcessor";
 import { Renders } from "./render/renders";
@@ -32,37 +32,41 @@ declare global {
 	}
 }
 
-const HOMEPAGE_SAMPLE = String.raw`title: My Homepage
+const PALETTE_KEYS: HomepageCardPalettePreset[] = ["sage", "mist", "amber", "plum", "slate"];
+
+function pickRandomPalettes(count: number): HomepageCardPalettePreset[] {
+	const shuffled = [...PALETTE_KEYS].sort(() => Math.random() - 0.5);
+	return shuffled.slice(0, count);
+}
+
+function generateHomeboardSample(): string {
+	const palettes = pickRandomPalettes(2);
+	return String.raw`title: 主页
 columns: 2
-gap: 16
+gap: 2
 cards:
   - type: links
-    title: CODE信息管理
+    title: 卡片 1
     span: 1
     linksLayout: inline
+    palettePreset: ${palettes[0]}
     links:
-      - label: 收件箱
-        url: 00.收件箱-Index
-      - label: 快速捕获
-        url: QuickCap
-      - label: 日记
-        url: 00.Daily Index
-      - label: 书架
-        url: WeRead.base
+      - label: 链接 1
+        url:
+      - label: 链接 2
+        url:
   - type: links
-    title: PARA组织管理
+    title: 卡片 2
     span: 1
     linksLayout: inline
+    palettePreset: ${palettes[1]}
     links:
-      - label: 项目
-        url: 00.项目 Index
-      - label: 领域
-        url: 00.领域 Index
-      - label: 资源
-        url: 00.资源 Index
-      - label: 归档
-        url: 00.归档 Index
+      - label: 链接 1
+        url:
+      - label: 链接 2
+        url:
 `;
+}
 
 export default class HomepageComponentPlugin extends Plugin {
 	settings: HomepageComponentSettings;
@@ -89,7 +93,7 @@ export default class HomepageComponentPlugin extends Plugin {
 			id: "insert-homeboard-block",
 			name: Locals.get().homeboard_insert_command,
 			editorCallback: (editor: Editor, _ctx: MarkdownView | MarkdownFileInfo) => {
-				editor.replaceSelection(`\`\`\`homeboard\n${HOMEPAGE_SAMPLE}\n\`\`\`\n`);
+				editor.replaceSelection(`\`\`\`homeboard\n${generateHomeboardSample()}\n\`\`\`\n`);
 			},
 		});
 
@@ -151,7 +155,7 @@ export default class HomepageComponentPlugin extends Plugin {
 	}
 
 	private insertHomeboardBlock(editor: Editor) {
-		editor.replaceSelection(`\`\`\`homeboard\n${HOMEPAGE_SAMPLE}\n\`\`\`\n`);
+		editor.replaceSelection(`\`\`\`homeboard\n${generateHomeboardSample()}\n\`\`\`\n`);
 	}
 
 	private openContributionGraphModal() {

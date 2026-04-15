@@ -53,9 +53,7 @@ function pushCard(lines: string[], card: HomepageCardConfig, level: number) {
 	if (card.span !== undefined) {
 		lines.push(`${indent(level + 1)}span: ${formatScalar(card.span)}`);
 	}
-	if (card.linksLayout) {
-		lines.push(`${indent(level + 1)}linksLayout: ${formatScalar(card.linksLayout)}`);
-	}
+	lines.push(`${indent(level + 1)}linksLayout: ${formatScalar(card.linksLayout ?? "inline")}`);
 	if (card.palettePreset) {
 		lines.push(`${indent(level + 1)}palettePreset: ${formatScalar(card.palettePreset)}`);
 	}
