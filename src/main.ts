@@ -84,9 +84,9 @@ export default class HomepageComponentPlugin extends Plugin {
 			}
 		});
 
-		this.registerMarkdownCodeBlockProcessor("homeboard", async (source, el, ctx) => {
+		this.registerMarkdownCodeBlockProcessor("homeboard", (source, el, ctx) => {
 			const processor = new HomepageProcessor(this, this.settings);
-			await processor.render(source, el, ctx, this.app);
+			processor.render(source, el, ctx, this.app);
 		});
 
 		this.addCommand({

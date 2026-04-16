@@ -28,15 +28,15 @@ export class HomepageProcessor {
 		this.settings = settings;
 	}
 
-	async render(
+	render(
 		code: string,
 		el: HTMLElement,
 		ctx: MarkdownPostProcessorContext,
 		_app: App
-		) {
+	) {
 			try {
 				const config = this.parseConfig(code);
-				await this.renderHomepage(config, code, el, ctx);
+				this.renderHomepage(config, code, el, ctx);
 		} catch (error) {
 			if (error instanceof HomeboardError) {
 				this.renderErrorTips(el, error.summary, error.recommends);
@@ -54,7 +54,7 @@ export class HomepageProcessor {
 		return parseHomepageConfig(code);
 	}
 
-	private async renderHomepage(
+	private renderHomepage(
 		config: HomepageConfig,
 		code: string,
 		el: HTMLElement,
