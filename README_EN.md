@@ -29,15 +29,6 @@ The plugin provides intuitive command palette and right-click menu operations, s
 
 3. Enable **Elements** in Settings → Community Plugins
 
-### From Source
-
-```bash
-git clone https://github.com/nightfall-yl/obsidian-elements.git
-cd obsidian-elements
-npm install
-npm run build
-```
-
 ### Prerequisites
 
 - [Dataview](https://github.com/blacksmithgu/obsidian-dataview) plugin (required for Contribution Graph queries)
