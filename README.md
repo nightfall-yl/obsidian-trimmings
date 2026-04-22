@@ -2,14 +2,16 @@
 
 > 一款 Obsidian 插件，为首页配置分栏导航卡片，并支持贡献热力图追踪。
 
-[![Min App Version](https://img.shields.io/badge/Obsidian-1.3.0%2B-7C3AED?logo=obsidian)](https://obsidian.md/)
-[![Version](https://img.shields.io/badge/Version-26.4.2-22C55E)](https://github.com/nightfall-yl/obsidian-elements/releases)
-[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
+## 插件功能总结
 
-Elements 提供两大核心功能，可独立使用，也可在同一页面组合：
+Elements 是一款功能强大的 Obsidian 插件，为用户提供了多种实用功能：
 
-- **元素卡片** — 通过 `elementCard` 代码块构建多列导航卡片布局
-- **贡献图** — 通过 `contributionGraph` 代码块渲染 GitHub 风格热力图，追踪笔记创作节奏
+- **元素卡片**：通过 `elementCard` 代码块构建多列导航卡片布局，支持自定义配色方案、链接布局和卡片样式，帮助用户快速访问常用笔记和资源。
+- **贡献热力图**：通过 `contributionGraph` 代码块渲染 GitHub 风格热力图，支持多种图表类型和数据源，帮助用户追踪笔记创作节奏和任务完成情况。
+- **强制视图模式**：允许用户为特定文件夹或文件设置默认视图模式（阅读模式或编辑模式），提高工作效率。
+- **光标位置记忆**：自动记忆并恢复用户在文件中的光标位置，避免重复定位，提升编辑体验。
+
+插件提供了直观的命令面板和右键菜单操作，支持中英文国际化，可根据用户的语言环境自动切换界面语言。
 
 ## 安装
 
@@ -42,16 +44,16 @@ npm run build
 
 ---
 
-## 首页仪表盘（Trimmings ElementCard）
+## 元素卡片（ElementCard）
 
-通过 `elementCard` 代码块构建多列导航仪表盘。
+通过 `elementCard` 代码块构建多列导航链接。
 
 ### 快速创建
 
 ````markdown
 ```elementCard
 id: homepage-main
-title: 主页
+title: elementCard
 columns: 2
 gap: 2
 cards:
@@ -81,11 +83,9 @@ cards:
 
 ### Builder
 
-通过命令面板运行 `Open Trimmings Builder` 打开可视化搭建界面。
+通过命令面板运行 `New ElementCard` 直接插入卡片，或通过右键菜单选择 **新增 Elements 组件** → **新建卡片**。
 
-要编辑已有代码块，将光标移入 `elementCard` 代码块，运行 `Edit Trimmings (elementCard) block at cursor`，保存后变更会自动回写到源代码块。
-
-也可以在编辑区右键，从右键菜单中选择 **新增 Trimmings 组件**。
+要编辑已有代码块，将光标移入 `elementCard` 代码块，运行 `Edit Elements (elementCard) block at cursor`，保存后变更会自动回写到源代码块。
 
 ### 配置参考
 
@@ -111,9 +111,9 @@ cards:
 
 ---
 
-## 贡献图（Contribution Graph）
+## 贡献热力图（Contribution Graph）
 
-基于 Dataview 查询数据，渲染 GitHub 风格的贡献热力图。灵感来源于 [obsidian-contribution-graph](https://github.com/vran-dev/obsidian-contribution-graph)。
+基于 Dataview 查询数据，渲染 GitHub 风格的贡献热力图。移植自 [obsidian-contribution-graph](https://github.com/vran-dev/obsidian-contribution-graph)。
 
 ### 快速创建
 
@@ -133,7 +133,7 @@ dataSource:
 ```
 ````
 
-也可以通过命令面板运行 `新建热力图` 或右键菜单创建，会打开可视化配置表单。
+也可以通过命令面板运行 `New ContributionGraph` 或右键菜单选择 **新增 Elements 组件** → **新建热力图**，会打开可视化配置表单。
 
 ### 图表类型
 
@@ -236,22 +236,20 @@ dataSource:
 
 | 命令 | 说明 |
 |------|------|
-| `Insert Elements (elementCard) block` | 插入新的 `elementCard` 代码块 |
-| `Open Elements Builder` | 打开可视化 Builder |
-| `Edit Elements (elementCard) block at cursor` | 编辑光标处的 `elementCard` 代码块 |
-| `新建热力图` | 创建新的贡献图 |
+| `New ElementCard` | 创建新的元素卡片 |
+| `New ContributionGraph` | 创建新的贡献图 |
 
-编辑区右键可从上下文菜单访问 **新增 Elements 组件**。阅读模式下 `elementCard` 和 `contributionGraph` 代码块旁均有浮动编辑按钮。
+编辑区右键可从上下文菜单访问 **新增 Elements 组件**，包含 **新建卡片** 和 **新建热力图** 选项。阅读模式下 `elementCard` 和 `contributionGraph` 代码块旁均有浮动编辑按钮。
 
 ---
 
 ## 集成功能
 
-Elements 还集成了以下实用功能：
+Elements 集成以下实用功能：
 
 ### 强制视图模式
 
-基于 [obsidian-force-view-mode-of-note](https://github.com/bwydoogh/obsidian-force-view-mode-of-note)，允许你为特定文件夹或文件设置默认视图模式（阅读模式或编辑模式）。
+移植自 [obsidian-force-view-mode-of-note](https://github.com/bwydoogh/obsidian-force-view-mode-of-note)，允许你为特定文件夹或文件设置默认视图模式（阅读模式或编辑模式）。
 
 **功能特点：**
 - 支持按文件夹设置视图模式
@@ -261,7 +259,7 @@ Elements 还集成了以下实用功能：
 
 ### 光标位置记忆
 
-基于 [obsidian-remember-cursor-position](https://github.com/dy-sh/obsidian-remember-cursor-position)，自动记忆并恢复你在文件中的光标位置。
+移植自 [obsidian-remember-cursor-position](https://github.com/dy-sh/obsidian-remember-cursor-position)，自动记忆并恢复你在文件中的光标位置。
 
 **功能特点：**
 - 自动保存光标位置
@@ -293,10 +291,20 @@ src/
 └── util/                      # 工具函数
 ```
 
+
 ```bash
 npm install
 npm run build
 ```
+
+---
+## 致谢
+
+基于 [Obsidian](https://obsidian.md/) 插件 API 和 [Dataview](https://github.com/blacksmithgu/obsidian-dataview) 构建。
+
+-  [obsidian-contribution-graph](https://github.com/vran-dev/obsidian-contribution-graph)
+-  [obsidian-force-view-mode-of-note](https://github.com/bwydoogh/obsidian-force-view-mode-of-note)
+-  [obsidian-remember-cursor-position](https://github.com/dy-sh/obsidian-remember-cursor-position)
 
 ---
 
@@ -304,8 +312,4 @@ npm run build
 
 [MIT](LICENSE)
 
-## 致谢
 
-基于 [Obsidian](https://obsidian.md/) 插件 API 和 [Dataview](https://github.com/blacksmithgu/obsidian-dataview) 构建。
-
-贡献图功能灵感来源于 [obsidian-contribution-graph](https://github.com/vran-dev/obsidian-contribution-graph) by [vran-dev](https://github.com/vran-dev)，在其基础上进行了深度整合与功能增强，特此致谢。

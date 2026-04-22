@@ -2,14 +2,16 @@
 
 > An Obsidian plugin that provides configurable navigation cards and contribution heatmaps for your homepage.
 
-[![Min App Version](https://img.shields.io/badge/Obsidian-1.3.0%2B-7C3AED?logo=obsidian)](https://obsidian.md/)
-[![Version](https://img.shields.io/badge/Version-26.4.5-22C55E)](https://github.com/nightfall-yl/obsidian-elements/releases)
-[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
+## Plugin Feature Summary
 
-Elements provides two core features that can be used independently or combined on the same page:
+Elements is a powerful Obsidian plugin that offers multiple useful features:
 
-- **ElementCard** — Build a multi-column navigation card layout via `elementCard` code blocks
-- **Contribution Graph** — Render GitHub-style heatmaps via `contributionGraph` code blocks to track note creation rhythm
+- **Element Card**: Build multi-column navigation card layouts through `elementCard` code blocks, supporting custom color schemes, link layouts, and card styles to help users quickly access frequently used notes and resources.
+- **Contribution Heatmap**: Render GitHub-style heatmaps through `contributionGraph` code blocks, supporting multiple chart types and data sources to help users track note creation rhythm and task completion status.
+- **Force View Mode**: Allow users to set default view modes (reading mode or editing mode) for specific folders or files, improving work efficiency.
+- **Remember Cursor Position**: Automatically remember and restore users' cursor positions in files, avoiding repeated positioning and enhancing editing experience.
+
+The plugin provides intuitive command palette and right-click menu operations, supports English and Chinese internationalization, and automatically switches interface languages based on the user's language environment.
 
 ## Installation
 
@@ -51,40 +53,39 @@ Create a dashboard with multi-column card layouts using the `elementCard` code b
 ````markdown
 ```elementCard
 id: homepage-main
-title: My Dashboard
+title: elementCard
 columns: 2
 gap: 2
 cards:
   - type: links
-    title: Quick Access
+    title: Card 1
     span: 1
     linksLayout: inline
+    palettePreset: sage
     links:
-      - label: Inbox
-        url: 00.Inbox
-      - label: Daily Note
-        url: 00.Daily Index
-      - label: Projects
-        url: 00.Projects
+      - label: Link 1
+        url:
+      - label: Link 2
+        url:
 
   - type: links
-    title: Resources
+    title: Card 2
     span: 1
-    linksLayout: list
+    linksLayout: inline
+    palettePreset: mist
     links:
-      - label: GitHub
-        url: https://github.com
-        external: true
+      - label: Link 1
+        url:
+      - label: Link 2
+        url:
 ```
 ````
 
 ### Builder
 
-Open the visual builder via the command palette: `Open Elements Builder`.
+Run `New ElementCard` from the command palette to directly insert a card, or select **Add Elements Component** → **Add Card** from the right-click menu.
 
 To edit an existing block, place your cursor inside a `elementCard` code block and run `Edit Elements (elementCard) block at cursor`. Changes are written back to the source block on save.
-
-You can also right-click in the editor and select **Add Elements Component** from the context menu.
 
 ### Configuration
 
@@ -132,7 +133,7 @@ dataSource:
 ```
 ````
 
-You can also create graphs via the command palette (`New Heatmap`) or the right-click context menu, which opens a visual configuration form.
+You can also create graphs via the command palette (`New ContributionGraph`) or select **Add Elements Component** → **Add Graph** from the right-click menu, which opens a visual configuration form.
 
 ### Graph Types
 
@@ -235,12 +236,10 @@ Cell shape supports rounded (default), square (`borderRadius: "0%"`), and circle
 
 | Command | Description |
 |---------|-------------|
-| `Insert Elements (elementCard) block` | Insert a new `elementCard` code block |
-| `Open Elements Builder` | Open the visual builder |
-| `Edit Elements (elementCard) block at cursor` | Edit the `elementCard` block under cursor |
-| `New Heatmap` | Create a new contribution graph |
+| `New ElementCard` | Create a new element card |
+| `New ContributionGraph` | Create a new contribution graph |
 
-Right-click in the editor to access **Add Elements Component** from the context menu. Floating edit buttons are available in reading mode for both `elementCard` and `contributionGraph` blocks.
+Right-click in the editor to access **Add Elements Component** from the context menu, which includes **Add Card** and **Add Graph** options. Floating edit buttons are available in reading mode for both `elementCard` and `contributionGraph` blocks.
 
 ---
 
@@ -307,4 +306,6 @@ npm run build
 
 Built on the [Obsidian](https://obsidian.md/) plugin API and [Dataview](https://github.com/blacksmithgu/obsidian-dataview).
 
-The Contribution Graph feature is inspired by [obsidian-contribution-graph](https://github.com/vran-dev/obsidian-contribution-graph) by [vran-dev](https://github.com/vran-dev), with deep integration and enhancements.
+- [obsidian-contribution-graph](https://github.com/vran-dev/obsidian-contribution-graph)
+- [obsidian-force-view-mode-of-note](https://github.com/bwydoogh/obsidian-force-view-mode-of-note)
+- [obsidian-remember-cursor-position](https://github.com/dy-sh/obsidian-remember-cursor-position)

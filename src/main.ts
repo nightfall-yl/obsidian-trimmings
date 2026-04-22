@@ -48,7 +48,8 @@ function pickRandomPalettes(count: number): ElementCardCardPalettePreset[] {
 
 function generateElementCardSample(): string {
 	const palettes = pickRandomPalettes(2);
-	return String.raw`title: 主页
+	const local = Locals.get();
+	return String.raw`title: ${local.elementCard_default_title}
 columns: 2
 gap: 2
 cards:
@@ -109,32 +110,16 @@ export default class ElementCardComponentPlugin extends Plugin {
 		});
 
 		this.addCommand({
-			id: "insert-elementCard-block",
-			name: Locals.get().elementCard_insert_command,
-			editorCallback: (editor: Editor, _ctx: MarkdownView | MarkdownFileInfo) => {
-				editor.replaceSelection(`\`\`\`elementCard\n${generateElementCardSample()}\n\`\`\`\n`);
-			},
-		});
-
-		this.addCommand({
 			id: "open-elementCard-builder",
-			name: Locals.get().elementCard_builder_command,
-			callback: () => {
-				this.openBuilder();
-			},
-		});
-
-		this.addCommand({
-			id: "edit-elementCard-block-at-cursor",
-			name: Locals.get().elementCard_edit_command,
-			editorCallback: (editor: Editor, _ctx: MarkdownView | MarkdownFileInfo) => {
-				this.editElementCardBlockAtCursor(editor);
+			name: "New ElementCard",
+			editorCallback: (editor: Editor) => {
+				this.insertElementCardBlock(editor);
 			},
 		});
 
 		this.addCommand({
 			id: "create-contribution-graph",
-			name: Locals.get().context_menu_create,
+			name: "New ContributionGraph",
 			editorCallback: () => {
 				this.openContributionGraphModal();
 			},
@@ -271,7 +256,7 @@ export default class ElementCardComponentPlugin extends Plugin {
 			submenuEl.style.left = `${menuRect.right - 4}px`;
 			submenuEl.style.top = `${rect.top}px`;
 			submenuEl.appendChild(
-				createSubmenuItem(local.elementCard_menu_insert, "lucide-columns-2", () => {
+				createSubmenuItem(local.context_menu_insert_elementCard, "lucide-columns-2", () => {
 					this.insertElementCardBlock(editor);
 				})
 			);

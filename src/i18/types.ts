@@ -11,6 +11,7 @@ export interface Local {
 	 * context menu
 	 */
 	context_menu_create: string;
+	context_menu_insert_elementCard: string;
 
 	/**
 	 * form
@@ -113,48 +114,7 @@ export interface Local {
 	form_button_preview: string;
 	form_button_save: string;
 
-	homeboard_builder_heading: string;
-	homeboard_tab_basic: string;
-	homeboard_tab_cards: string;
-	homeboard_block_id: string;
-	homeboard_block_id_desc: string;
-	homeboard_title_font_size_placeholder: string;
-	homeboard_columns: string;
-	homeboard_gap: string;
-	homeboard_gap_desc: string;
-	homeboard_cards: string;
-	homeboard_add_card: string;
-	homeboard_add_card_desc: string;
-	homeboard_add_button: string;
-	homeboard_type: string;
-	homeboard_type_desc: string;
-	homeboard_palette: string;
-	homeboard_palette_desc: string;
-	homeboard_palette_custom: string;
-	homeboard_palette_sage: string;
-	homeboard_palette_mist: string;
-	homeboard_palette_amber: string;
-	homeboard_palette_plum: string;
-	homeboard_palette_slate: string;
-	homeboard_background: string;
-	homeboard_background_desc: string;
-	homeboard_accent_colors: string;
-	homeboard_accent_colors_desc: string;
-	homeboard_column_span: string;
-	homeboard_column_span_desc: string;
-	homeboard_links: string;
-	homeboard_links_desc: string;
-	homeboard_move_up: string;
-	homeboard_move_down: string;
-	homeboard_remove: string;
-	homeboard_card_label: string;
-	homeboard_default_title: string;
-	homeboard_default_card_title: string;
-	homeboard_menu_title: string;
-	homeboard_insert_command: string;
-	homeboard_builder_command: string;
-	homeboard_edit_command: string;
-	homeboard_menu_insert: string;
+
 	elementCard_builder_heading: string;
 	elementCard_tab_basic: string;
 	elementCard_tab_cards: string;
@@ -198,22 +158,12 @@ export interface Local {
 	elementCard_edit_command: string;
 	elementCard_menu_insert: string;
 	notice_open_markdown_first: string;
-	notice_homeboard_update_failed: string;
-	notice_homeboard_parse_failed: string;
-	notice_homeboard_cursor_required: string;
 	notice_elementCard_update_failed: string;
 	notice_elementCard_parse_failed: string;
 	notice_elementCard_cursor_required: string;
 	notice_no_active_markdown_file: string;
 	notice_heatmap_no_markdown_view: string;
 	notice_heatmap_editor_unsupported: string;
-	homeboard_error_empty: string;
-	homeboard_error_empty_recommend: string;
-	homeboard_error_invalid_yaml_object: string;
-	homeboard_error_card_required: string;
-	homeboard_error_card_required_recommend: string;
-	homeboard_error_yaml_failed_at_line: string;
-	homeboard_error_yaml_failed: string;
 	elementCard_error_empty: string;
 	elementCard_error_empty_recommend: string;
 	elementCard_error_invalid_yaml_object: string;
